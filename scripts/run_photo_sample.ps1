@@ -5,7 +5,8 @@ param(
     [int]$TradeCount = 96,
     [int]$EventCount = 120,
     [int]$EquityCount = 700,
-    [double]$StartCash = 20000
+    [double]$StartCash = 20000,
+    [bool]$Open = $true
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,7 +41,11 @@ $pyScript = $scriptArgs[1]
 $report = Join-Path $outDir "report.html"
 if (Test-Path $report) {
     Write-Host "[RRKAL RenderKit] done: $report"
-    Start-Process $report
+    if ($Open) {
+        Start-Process $report
+    } else {
+        Write-Host "[RRKAL RenderKit] open disabled by -Open:`$false; report not auto-opened"
+    }
 } else {
     Write-Warning "[RRKAL RenderKit] report not found: $report"
 }

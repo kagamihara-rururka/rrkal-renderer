@@ -88,6 +88,9 @@ python scripts/generate_photo_sample.py --trade-count 80 --event-count 90 --equi
 # Windows one-shot preview script
 powershell -ExecutionPolicy Bypass -File scripts/run_photo_sample.ps1
 # This also opens the generated report.html automatically.
+
+# Disable auto-open if your environment has no GUI/browser
+powershell -ExecutionPolicy Bypass -File scripts/run_photo_sample.ps1 -Open:$false
 ```
 
 ### 批次
