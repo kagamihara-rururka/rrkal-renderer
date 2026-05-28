@@ -7,6 +7,7 @@ import json
 import math
 import re
 import zipfile
+import heapq
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -694,20 +695,32 @@ def _to_html(
     )
     path_d = _svg_polyline(sampled)
 
+    trade_events = trades
     top_trades = (
-        sorted(
-            trades,
+        heapq.nlargest(
+            trade_max_rows,
+            trade_events,
             key=lambda row: abs(_as_float(row.get("pnl", 0.0), 0.0)),
-            reverse=True,
         )
         if trade_max_rows > 0
-        else trades
+        else trade_events
     )
-    if trade_max_rows > 0:
-        top_trades = top_trades[:trade_max_rows]
-    recent_events = sorted(events, key=lambda row: _as_text(row.get("timestamp", "")), reverse=True)
+
+    recent_events = (
+        heapq.nlargest(
+            event_max_rows,
+            events,
+            key=lambda row: _as_text(row.get("timestamp", "")),
+        )
+        if event_max_rows > 0
+        else sorted(events, key=lambda row: _as_text(row.get("timestamp", "")), reverse=True)
+    )
     if event_max_rows > 0:
-        recent_events = recent_events[:event_max_rows]
+        recent_events = sorted(
+            recent_events,
+            key=lambda row: _as_text(row.get("timestamp", "")),
+            reverse=True,
+        )
 
     md = _summary_markdown(payload, len(equity_points), len(sampled))
     symbols = sorted({trade.get("symbol", "") for trade in trades if trade.get("symbol")})
