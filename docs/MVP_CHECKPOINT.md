@@ -14,3 +14,4 @@
 - [x] 支援 equity SVG 輸出（`equity_curve.svg`）
 - [x] 支援 PDF 輸出
 - [x] 強化報表互動：事件/交易列選取時，會同步將 equity 圖游標對位到最接近時間點
+- [x] 在 `render_summary.json` 的 `render_settings` 紀錄 `html_row_cap`，方便 RRKAL 追蹤 HTML inspector 行數策略

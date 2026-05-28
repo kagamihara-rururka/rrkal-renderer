@@ -145,6 +145,7 @@ def _write_render_summary(
             "title": args.title,
             "trade_max_rows": args.trade_max_rows,
             "event_max_rows": args.event_max_rows,
+            "html_row_cap": args.html_row_cap,
             "equity_max_points": args.equity_max_points,
             "equity_compress": args.equity_compress,
             "equity_rdp_epsilon": args.equity_rdp_epsilon,
