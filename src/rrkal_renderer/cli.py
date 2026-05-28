@@ -1136,11 +1136,11 @@ def _to_html(
         "      }",
         "      const nearest = findNearestEventIndexByTs(eventFiltered, ts);",
         "      if (nearest >= 0) {",
-        "      const targetPage = Math.floor(nearest / parsePageSize(eventPageSize)) + 1;"
-        "        if (eventPageState.page !== targetPage) {"
-        "          eventPageState.page = targetPage;"
-        "          renderEvents();"
-        "        }"
+        "        const targetPage = Math.floor(nearest / parsePageSize(eventPageSize)) + 1;",
+        "        if (eventPageState.page !== targetPage) {",
+        "          eventPageState.page = targetPage;",
+        "          renderEvents();",
+        "        }",
         "        const i = nearest;",
         "        const exact = eventFiltered[i] || null;",
         "        setSelectedEvent(exact);",
@@ -1150,6 +1150,9 @@ def _to_html(
         "          chartMeta.textContent = `equity sample #${idx + 1}: ts=${safeText(ts)} | event synced to row #${i + 1}`;",
         "        }",
         "      } else {",
+        "        setSelectedEvent(null);",
+        "        eventCursor = -1;",
+        "        applyCursorSelection('event');",
         "        if (chartMeta) {",
         "          const current = chartMeta.textContent;",
         "          chartMeta.textContent = `${current} | event window synced to ${ts}`;",
