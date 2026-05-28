@@ -37,6 +37,9 @@ python -m rrkal_renderer.cli validate path/to/run.json
 # 預設輸出 HTML / MD / JSON 元資訊 / SVG
 python -m rrkal_renderer.cli render path/to/run.json
 
+# 只輸出 PDF 報表（需要安裝 PDF 轉換後端）
+python -m rrkal_renderer.cli render path/to/run.json --format pdf
+
 # 只輸出 HTML + 降採樣設定
 python -m rrkal_renderer.cli render path/to/run.json --format html --equity-compress rdp --equity-max-points 8000
 
