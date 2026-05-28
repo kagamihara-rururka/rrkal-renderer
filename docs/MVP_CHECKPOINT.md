@@ -21,3 +21,5 @@
 - [x] 新增 `Compact View` 切換（`M` 快捷鍵 + `localStorage` 持久化，切換表格/卡片/版面密度，服務大數據瀏覽）
 - [x] 加入 CLI `--compact/--no-compact` 控制輸出時是否以 compact 初始密度開啟，並在 `render_summary.json` 紀錄
 - [x] 強化 `validate-summary` 契約檢查：新增 `render_settings.compact_layout` 欄位必填與型別驗證
+- [x] 新增 inspector 卡片式摘要模式（`Photo Layout` 時）與搜尋命中高亮 (`.match`)，事件/交易清單保留原始欄位並提供卡片摘要列
+- [x] 事件/交易渲染以 HTML 欄位插值進行摘要拼接，並在切換 `photo/compact` 時套用 `card-mode`，作為 RRKAL 大數據 inspector 的預渲染對齊方向
