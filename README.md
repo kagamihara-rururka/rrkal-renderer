@@ -8,6 +8,8 @@ RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifa
 - PDF 報表（`report.pdf`）
 - CSV/JSONL 導出（`trades.csv`、`equity_curve.csv`、`events.csv`、`events.jsonl`）
 - 渲染摘要（`render_summary.html/json`）
+- 報表打包（`render_bundle.zip`，與 report.html 同目錄）
+  - 在 `report.html` 會顯示 `Download Bundle` 按鈕，可直接下載全部輸出成果（含摘要清單）
 
 這個版本特別做了兩件事：
 
@@ -55,6 +57,12 @@ python -m rrkal_renderer.cli render path/to/run.json --format all
 # 只輸出 HTML + 降採樣設定
 python -m rrkal_renderer.cli render path/to/run.json --format html --equity-compress rdp --equity-max-points 8000
 
+# 只輸出摘要（含 render_summary + render_bundle）
+python -m rrkal_renderer.cli render path/to/run.json --format md --export-csv --emit-svg
+
+# 只輸出 JSON + 打包
+python -m rrkal_renderer.cli render path/to/run.json --format json --export-jsonl
+
 # 加速分析：輸出 csv
 python -m rrkal_renderer.cli render path/to/run.json --emit-svg --export-csv --output-dir outputs/run01
 
@@ -79,9 +87,10 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--equity-rdp-epsilon`
 - `--trade-max-rows`
 - `--event-max-rows`
-- `--emit-svg`
-- `--export-csv`
-- `--export-jsonl`
+- `--emit-svg`（若輸出同時包含任何可匯出檔案，會在輸出目錄補齊 `render_bundle.zip`）
+- `--export-csv`（同上）
+- `--export-jsonl`（同上）
+- `--format all|md|html|json|pdf`（同時會輸出 `render_bundle.zip`，有摘要時便可直接下載）
 - `--pdf-title`：PDF metadata title
 - `--pdf-meta`：PDF metadata note
 - `--photo-style` / `--no-photo-style`

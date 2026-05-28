@@ -139,7 +139,13 @@ def _write_render_summary(
     }
     _write_text(out_dir / "render_summary.json", json.dumps(summary, ensure_ascii=False, indent=2))
 
-    output_links = "".join([f"<li>{html.escape(item)}</li>" for item in rendered])
+    output_links = "".join(
+        [
+            f"<li><a href=\"{html.escape(item)}\">{html.escape(item)}</a></li>" if item != "render_summary.html" else
+            f"<li><strong>{html.escape(item)}</strong> (current page)</li>"
+            for item in rendered
+        ]
+    )
     pdf_result = "success" if pdf_status.get("success") else "failed"
     html_lines = [
         "<!doctype html>",
@@ -162,6 +168,19 @@ def _write_render_summary(
         "</body></html>",
     ]
     _write_text(out_dir / "render_summary.html", "\n".join(html_lines))
+
+
+def _write_bundle(out_dir: Path, file_names: List[str], *, bundle_name: str = "render_bundle.zip") -> bool:
+    bundle_path = out_dir / bundle_name
+    candidates = [p for p in file_names if p != bundle_name]
+    added = 0
+    with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name in candidates:
+            item = out_dir / name
+            if item.exists():
+                zf.write(item, arcname=name)
+                added += 1
+    return added > 0
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -736,6 +755,7 @@ def _to_html(
         "          <option value='trades'>Trades</option>",
         "        </select>",
         "        <button id='globalReset'>Clear Search</button>",
+        "        <button id='exportBundle'>Download Bundle</button>",
         "        <span id='globalMatch' class='badge'>No global query</span>",
         "      </div>",
         "      <p class='note'>Shortcuts: / to focus search, Enter/C to copy selection, F/T to jump symbol input.</p>",
@@ -880,6 +900,7 @@ def _to_html(
         "    const tradeReset = document.querySelector('#tradeReset');",
         "    const eventExport = document.querySelector('#eventExport');",
         "    const tradeExport = document.querySelector('#tradeExport');",
+        "    const exportBundle = document.querySelector('#exportBundle');",
         "    const equityPanel = document.querySelector('#equityPanel');",
         "    const eventPanel = document.querySelector('#eventPanel');",
         "    const tradePanel = document.querySelector('#tradePanel');",
@@ -958,6 +979,15 @@ def _to_html(
         "      nodePager.textContent = `Page ${state.page}/${pages}`;",
         "      nodeHint.textContent = total === 0 ? 'rows 0-0' : `rows ${offset + 1}-${end}`;",
         "      return { offset, end };",
+        "    }",
+        "    function downloadBundle(filename='render_bundle.zip'){",
+        "      const link = document.createElement('a');",
+        "      link.href = filename;",
+        "      link.download = filename;",
+        "      link.style.display = 'none';",
+        "      document.body.appendChild(link);",
+        "      link.click();",
+        "      document.body.removeChild(link);",
         "    }",
         "    function downloadCSV(filename, rows){",
         "      if (!rows || rows.length === 0) return;",
@@ -1452,6 +1482,7 @@ def _to_html(
         "      tradeExport.addEventListener('click', ()=>{ const filename = 'trades_visible_' + Date.now() + '.csv'; downloadCSV(filename, tradeRows); });",
         "      eventExportAll.addEventListener('click', ()=>{ const filename = 'events_filtered_' + Date.now() + '.csv'; downloadCSV(filename, eventFiltered); });",
         "      tradeExportAll.addEventListener('click', ()=>{ const filename = 'trades_filtered_' + Date.now() + '.csv'; downloadCSV(filename, tradeFiltered); });",
+        "      if (exportBundle) { exportBundle.addEventListener('click', ()=>{ downloadBundle('render_bundle.zip'); }); }",
         "      eventCopyRow.addEventListener('click', ()=> copyRowText(selectedEventRow ? JSON.stringify(selectedEventRow, null, 2) : ''));",
         "      tradeCopyRow.addEventListener('click', ()=> copyRowText(selectedTradeRow ? JSON.stringify(selectedTradeRow, null, 2) : ''));",
         "      setActiveInspector('event');",
@@ -1688,6 +1719,7 @@ def _render_payload(
 
     rendered.append("render_summary.json")
     rendered.append("render_summary.html")
+
     _write_render_summary(
         out_dir,
         artifact_name,
@@ -1697,6 +1729,12 @@ def _render_payload(
         rendered=rendered,
         pdf_status=pdf_status,
     )
+
+    should_bundle = args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
+    if should_bundle:
+        rendered.append("render_bundle.zip")
+        _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip")
+
     return out_dir
 
 
