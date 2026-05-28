@@ -2169,6 +2169,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def _validate_bundle_contract(summary: Dict[str, Any], base_dir: Path) -> List[str]:
     errors: List[str] = []
     outputs = summary.get("outputs")
+    render_settings = summary.get("render_settings")
+    if not isinstance(render_settings, dict):
+        errors.append("render_settings must be an object")
+    else:
+        compact_setting = render_settings.get("compact_layout")
+        if not isinstance(compact_setting, bool):
+            errors.append("render_settings.compact_layout must be boolean")
+
     if not isinstance(outputs, dict):
         errors.append("outputs must be an object")
         return errors

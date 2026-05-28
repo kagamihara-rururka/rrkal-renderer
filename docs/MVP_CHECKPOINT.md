@@ -20,3 +20,4 @@
 - [x] `Photo Layout` 按鈕同步更新副標題並加入 `P` 快捷鍵切換
 - [x] 新增 `Compact View` 切換（`M` 快捷鍵 + `localStorage` 持久化，切換表格/卡片/版面密度，服務大數據瀏覽）
 - [x] 加入 CLI `--compact/--no-compact` 控制輸出時是否以 compact 初始密度開啟，並在 `render_summary.json` 紀錄
+- [x] 強化 `validate-summary` 契約檢查：新增 `render_settings.compact_layout` 欄位必填與型別驗證
