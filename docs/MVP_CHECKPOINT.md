@@ -26,3 +26,4 @@
 - [x] 修正 Photo/Compact 切換事件綁定時機，改為 `bind` 初始化時一次綁定，避免切版切換時重複綁定事件導致錯誤累積
 - [x] 強化 inspector 卡片式 row 視覺（photo mode 下 card-summary 行加入獨立圓角背景與間距），提升與 photo 版面一致性
 - [x] 為事件/交易卡片摘要加上 badge（symbol/time、PnL/qty）與 photo 色階，並移除重複文字行
+- [x] 新增 `--photo-preset` CLI 預設 profile，提供 `photo|photo-compact|classic` 一鍵初始版面，直接對齊 RRKAL 服務端預渲染入口需求

@@ -2374,6 +2374,12 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         action="store_false",
         help="start with normal layout density",
     )
+    parser.add_argument(
+        "--photo-preset",
+        choices=["photo", "photo-compact", "classic"],
+        default=None,
+        help="preset initial layout: `photo`, `photo-compact`, or `classic`",
+    )
     parser.add_argument("--equity-compress", choices=["auto", "rdp", "lttb", "uniform", "none"], default="auto", help="equity curve compression strategy")
     parser.add_argument("--equity-max-points", type=int, default=DEFAULT_EQUITY_MAX_POINTS, help="max points for html/svg equity rendering")
     parser.add_argument("--equity-rdp-epsilon", type=float, default=0.002, help="RDP epsilon when equity-compress=rdp")
@@ -2445,6 +2451,15 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if getattr(args, "photo_preset", None) == "classic":
+        args.photo_style = False
+        args.compact_layout = False
+    elif getattr(args, "photo_preset", None) == "photo":
+        args.photo_style = True
+        args.compact_layout = False
+    elif getattr(args, "photo_preset", None) == "photo-compact":
+        args.photo_style = True
+        args.compact_layout = True
     if not getattr(args, "command", None):
         parser.print_help()
         return 1
