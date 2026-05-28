@@ -28,3 +28,4 @@
 - [x] 為事件/交易卡片摘要加上 badge（symbol/time、PnL/qty）與 photo 色階，並移除重複文字行
 - [x] 新增 `--photo-preset` CLI 預設 profile，提供 `photo|photo-compact|classic` 一鍵初始版面，直接對齊 RRKAL 服務端預渲染入口需求
 - [x] 新增 `scripts/generate_photo_sample.py`，可快速產生 mock RRKAL artifact 並可選擇直接 render 成 photo-compact html，便於開發比對
+- [x] 新增 `scripts/run_photo_sample.ps1` 一鍵預覽腳本（Windows），並在 README 加上執行示例

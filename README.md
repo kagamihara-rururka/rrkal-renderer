@@ -84,6 +84,9 @@ python -m rrkal_renderer.cli render path/to/run.json --no-photo-style
 # generate photo-style sample artifact + render preview html
 python scripts/generate_photo_sample.py --render --overwrite
 python scripts/generate_photo_sample.py --trade-count 80 --event-count 90 --equity-count 400 --render --photo-preset photo
+
+# Windows one-shot preview script
+powershell -ExecutionPolicy Bypass -File scripts/run_photo_sample.ps1
 ```
 
 ### 批次
