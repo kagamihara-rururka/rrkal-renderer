@@ -18,3 +18,4 @@
 - [x] 點擊 equity 點位時同步最近事件與最近交易列，增加事件/交易時間軸對焦
 - [x] 報表工具列加入「Photo Layout」即時切換（記錄到 localStorage，利於工作區偏好保持）
 - [x] `Photo Layout` 按鈕同步更新副標題並加入 `P` 快捷鍵切換
+- [x] 新增 `Compact View` 切換（`M` 快捷鍵 + `localStorage` 持久化，切換表格/卡片/版面密度，服務大數據瀏覽）
