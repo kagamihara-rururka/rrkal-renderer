@@ -714,6 +714,9 @@ def _to_html(
     else:
         html_event_cap = 5000
 
+    inspect_cap_label = "trade:unlimited" if html_trade_cap >= len(trades) else f"trade:{html_trade_cap}"
+    inspect_cap_label = f"{inspect_cap_label}, event:unlimited" if html_event_cap >= len(events) else f"{inspect_cap_label}, event:{html_event_cap}"
+
     trade_events = trades
     top_trades = (
         heapq.nlargest(
@@ -857,7 +860,7 @@ def _to_html(
         f"<body class=\"{body_class}\">",
         "  <div class='container'>",
         f"    <div class='title'>{safe_title}</div>",
-        f"    <div class='subtitle'>RRKAL 2.0.0 �E photo-style pre-renderer �E mode={body_class}</div>",
+        f"    <div class='subtitle'>RRKAL 2.0.0 photo-style pre-renderer mode={body_class} | html rows: {inspect_cap_label}</div>",
         "    <section class='panel global-toolbar'>",
         "      <div class='toolbar'>",
         "        <div class='title-block'>",
