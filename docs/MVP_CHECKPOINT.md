@@ -13,3 +13,4 @@
 - [x] 支援壓縮包輸入（jsonl / zip）
 - [x] 支援 equity SVG 輸出（`equity_curve.svg`）
 - [x] 支援 PDF 輸出
+- [x] 強化報表互動：事件/交易列選取時，會同步將 equity 圖游標對位到最接近時間點

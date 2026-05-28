@@ -109,6 +109,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--bundle-manifest-only`（只輸出 `bundle_manifest.json`，不壓縮）
 - `bundle_manifest.json` 內會保留 `bundle_name`（固定為 `render_bundle.zip`）與 `bundle_mode`（`manifest`/`zip`/`none`）
 - `--photo-style` / `--no-photo-style`
+- Selecting an event/trade row now syncs the equity chart cursor to nearest matching timestamp (useful for big artifacts).
 
 ## 注意事項
 
