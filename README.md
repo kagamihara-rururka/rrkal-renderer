@@ -112,3 +112,33 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 
 - 只會驗證 artifact 的結構是否可載入，不做 RRKAL 執行/交易決策
 - `schema_version` 預設採 `2.0.0`，未通過可在 `--lenient` 開啟後繼續輸出
+
+## RRKAL bundle contract
+
+`render_summary.json` now exposes `outputs.bundle` as follows:
+- `mode`: `"zip"` / `"manifest"` / `"none"`
+- `path`: physical output path for RRKAL download (`render_bundle.zip` or `bundle_manifest.json`)
+- `requested`: boolean, whether bundling was requested by flags or auto-policy
+- `available`: boolean, whether the target file was successfully written
+- `reason`: concise reason for final state
+
+Current reason values:
+- `disabled by --no-bundle`
+- `not requested by format/export options`
+- `bundle generation failed`
+- `no files eligible for manifest generation`
+- `bundle manifest generated`
+- `no files eligible for zip bundling`
+- `bundle zip generated`
+
+`bundle_manifest.json` fields:
+- `bundle_name`: fixed target package name (`render_bundle.zip`)
+- `bundle_mode`: `"manifest"` (for manifest-only mode)
+- `created_at`, `file_count`, `items`
+
+`items` includes each item name, byte size, and mtime.
+
+Mode mapping:
+- `zip`: command path produces/requests full `render_bundle.zip` (`--bundle`, or auto when format/json/html/md/pdf/svg/csv/jsonl exports are enabled)
+- `manifest`: `--bundle-manifest-only` was used
+- `none`: bundle is skipped (`--no-bundle`, or no auto-trigger for bundle)

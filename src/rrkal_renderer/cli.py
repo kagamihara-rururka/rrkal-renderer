@@ -127,7 +127,14 @@ def _write_render_summary(
         "outputs": {
             "rendered_files": rendered,
             "pdf": pdf_status,
-            "bundle": bundle_info or {"requested": False, "available": False, "path": "render_bundle.zip"},
+            "bundle": bundle_info
+            or {
+                "mode": "none",
+                "path": "render_bundle.zip",
+                "requested": False,
+                "available": False,
+                "reason": "not requested by command options",
+            },
         },
         "render_settings": {
             "title": args.title,
@@ -164,7 +171,8 @@ def _write_render_summary(
         f"<p>bundle: requested=<strong>{bundle_info['requested'] if bundle_info else False}</strong> | "
         f"available=<strong>{bundle_info['available'] if bundle_info else False}</strong> | "
         f"mode=<strong>{html.escape((bundle_info or {}).get('mode', 'zip'))}</strong> | "
-        f"path=<code>{html.escape((bundle_info or {}).get('path', 'render_bundle.zip'))}</code></p>",
+        f"path=<code>{html.escape((bundle_info or {}).get('path', 'render_bundle.zip'))}</code> | "
+        f"reason=<strong>{html.escape((bundle_info or {}).get('reason', 'n/a'))}</strong></p>",
         "<h2>Rendered files</h2>",
         "<ul>",
         output_links,
@@ -1699,13 +1707,19 @@ def _render_payload(
         rendered.append("report.md")
 
     html_content: str | None = None
-    should_bundle = (
-        True
-        if args.bundle is True
-        else False
-        if args.bundle is False
-        else args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
+    should_bundle_auto = (
+        args.format in ("all", "md", "html", "json", "pdf")
+        or args.emit_svg
+        or args.export_csv
+        or args.export_jsonl
     )
+    if args.bundle is True:
+        should_bundle = True
+    elif args.bundle is False:
+        should_bundle = False
+    else:
+        should_bundle = should_bundle_auto
+
     should_bundle_zip = should_bundle and not args.bundle_manifest_only
     if args.format in ("all", "html", "pdf"):
         html_content = _to_html(
@@ -1806,7 +1820,13 @@ def _render_payload(
     if should_bundle:
         if args.bundle_manifest_only:
             bundle_file = "bundle_manifest.json"
-            bundle_info = {"requested": True, "available": False, "path": bundle_file, "mode": "manifest"}
+            bundle_info = {
+                "mode": "manifest",
+                "path": bundle_file,
+                "requested": True,
+                "available": False,
+                "reason": "no files eligible for manifest generation",
+            }
             if _build_bundle_manifest(
                 out_dir,
                 rendered,
@@ -1815,14 +1835,34 @@ def _render_payload(
             ):
                 rendered.append(bundle_file)
                 bundle_info["available"] = True
+                bundle_info["reason"] = "bundle manifest generated"
         else:
             bundle_file = "render_bundle.zip"
-            bundle_info = {"requested": True, "available": False, "path": bundle_file, "mode": "zip"}
+            bundle_info = {
+                "mode": "zip",
+                "path": bundle_file,
+                "requested": True,
+                "available": False,
+                "reason": "no files eligible for zip bundling",
+            }
             if _write_bundle(out_dir, rendered, bundle_name=bundle_file):
                 rendered.append(bundle_file)
                 bundle_info["available"] = True
+                bundle_info["reason"] = "bundle zip generated"
     else:
-        bundle_info = {"requested": False, "available": False, "path": "render_bundle.zip", "mode": "none"}
+        if args.bundle is False:
+            reason = "disabled by --no-bundle"
+        elif should_bundle_auto:
+            reason = "bundle generation failed"
+        else:
+            reason = "not requested by format/export options"
+        bundle_info = {
+            "mode": "none",
+            "path": "render_bundle.zip",
+            "requested": should_bundle,
+            "available": False,
+            "reason": reason,
+        }
 
     _write_render_summary(
         out_dir,
