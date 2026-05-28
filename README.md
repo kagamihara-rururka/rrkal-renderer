@@ -166,3 +166,34 @@ When bundle is skipped:
   "reason": "disabled by --no-bundle"
 }
 ```
+
+Machine-readable contract summary (RRKAL integration):
+
+```json
+{
+  "artifact_name": "<artifact name>",
+  "run_id": "<run id>",
+  "outputs": {
+    "bundle": {
+      "mode": "zip | manifest | none",
+      "path": "render_bundle.zip | bundle_manifest.json",
+      "requested": true | false,
+      "available": true | false,
+      "reason": "<state reason>"
+    }
+  }
+}
+```
+
+Expected states:
+
+- `mode=zip` + `path=render_bundle.zip` in normal or `--bundle` mode
+- `mode=manifest` + `path=bundle_manifest.json` when `--bundle-manifest-only`
+- `mode=none` in disabled/non-auto cases
+- `available=true` only if the output file exists after render
+
+Downstream rule:
+
+- If `outputs.bundle.mode` is `zip`, RRKAL should treat `outputs.bundle.path` as the downloadable artifact.
+- If `outputs.bundle.mode` is `manifest`, RRKAL should treat `outputs.bundle.path` as pre-export inventory.
+- If `outputs.bundle.mode` is `none`, RRKAL should ignore bundle download path and rely on `requested`/`reason`.

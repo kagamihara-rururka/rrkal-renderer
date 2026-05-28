@@ -1646,10 +1646,12 @@ def _to_html(
         "  </script>",
         "</body>",
         "</html>",
-    ]
+    ])
 
     return "\\n".join(html_lines)
-\ndef _write_svg(path: Path, points: List[Tuple[float, float, str]], width: int = 1080, height: int = 360) -> None:
+
+
+def _write_svg(path: Path, points: List[Tuple[float, float, str]], width: int = 1080, height: int = 360) -> None:
     d = _svg_polyline(points, width=width, height=height)
     _write_text(
         path,
