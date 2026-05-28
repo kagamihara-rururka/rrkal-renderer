@@ -723,12 +723,12 @@ def _to_html(
         )
 
     md = _summary_markdown(payload, len(equity_points), len(sampled))
-    symbols = sorted({trade.get("symbol", "") for trade in trades if trade.get("symbol")})
-    event_names = sorted({event.get("event", "") for event in events if event.get("event")})
+    symbols = sorted({trade.get("symbol", "") for trade in top_trades if trade.get("symbol")})
+    event_names = sorted({event.get("event", "") for event in recent_events if event.get("event")})
     event_chip_names = event_names[:20]
     trade_chip_counter = Counter(trade.get("symbol", "") for trade in top_trades if trade.get("symbol", "").strip())
     trade_chip_names = [name for name, _ in trade_chip_counter.most_common(12)]
-    trade_dirs = sorted({trade.get("direction", "").strip() for trade in trades if trade.get("direction", "").strip()})
+    trade_dirs = sorted({trade.get("direction", "").strip() for trade in top_trades if trade.get("direction", "").strip()})
 
     eq_stats = {
         "count": len(equity_points),
