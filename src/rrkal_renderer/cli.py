@@ -26,7 +26,11 @@ def _slugify(value: str) -> str:
 
 
 def _load_json(path: str) -> Dict[str, Any]:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = Path(path).read_text(encoding="utf-8")
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        payload = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     if not isinstance(payload, dict):
         raise SystemExit(f"artifact json root must be object: {path}")
     return payload
@@ -1945,6 +1949,79 @@ def cmd_validate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _validate_bundle_contract(summary: Dict[str, Any], base_dir: Path) -> List[str]:
+    errors: List[str] = []
+    outputs = summary.get("outputs")
+    if not isinstance(outputs, dict):
+        errors.append("outputs must be an object")
+        return errors
+
+    bundle = outputs.get("bundle")
+    if not isinstance(bundle, dict):
+        errors.append("outputs.bundle must be an object")
+        return errors
+
+    mode = bundle.get("mode")
+    if mode not in {"zip", "manifest", "none"}:
+        errors.append("outputs.bundle.mode must be one of: zip, manifest, none")
+
+    path = bundle.get("path")
+    if not isinstance(path, str) or not path:
+        errors.append("outputs.bundle.path must be a non-empty string")
+
+    if not isinstance(bundle.get("requested"), bool):
+        errors.append("outputs.bundle.requested must be boolean")
+    if not isinstance(bundle.get("available"), bool):
+        errors.append("outputs.bundle.available must be boolean")
+    reason = bundle.get("reason")
+    if not isinstance(reason, str) or not reason:
+        errors.append("outputs.bundle.reason must be a non-empty string")
+
+    if mode == "zip" and path != "render_bundle.zip":
+        errors.append("when mode=zip, path should be 'render_bundle.zip'")
+    if mode == "manifest" and path != "bundle_manifest.json":
+        errors.append("when mode=manifest, path should be 'bundle_manifest.json'")
+
+    if mode in {"zip", "manifest"} and bundle.get("available"):
+        target = base_dir / str(path)
+        if not target.exists():
+            errors.append(f"declared artifact missing: {target}")
+
+    if mode == "none" and bundle.get("available"):
+        errors.append("mode=none must have available=false")
+    if mode in {"zip", "manifest"} and not bundle.get("requested"):
+        errors.append(f"mode={mode} usually implies requested=true")
+
+    return errors
+
+
+def cmd_validate_summary(args: argparse.Namespace) -> int:
+    summary = _load_json(args.input)
+    errors = _validate_bundle_contract(summary, Path(args.input).parent or Path("."))
+    if errors:
+        print(json.dumps({"valid": False, "errors": errors}, ensure_ascii=False, indent=2))
+        return 1
+    print(
+        json.dumps(
+            {
+                "valid": True,
+                "bundle_mode": summary.get("outputs", {})
+                .get("bundle", {})
+                .get("mode"),
+                "bundle_path": summary.get("outputs", {})
+                .get("bundle", {})
+                .get("path"),
+                "reason": summary.get("outputs", {})
+                .get("bundle", {})
+                .get("reason"),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
 def _add_render_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--format",
@@ -2023,6 +2100,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_validate = sub.add_parser("validate", help="validate RRKAL artifact")
     p_validate.add_argument("input", help="artifact json path")
     p_validate.set_defaults(func=cmd_validate)
+
+    p_validate_summary = sub.add_parser("validate-summary", help="validate render_summary.json contract for RRKAL integration")
+    p_validate_summary.add_argument("input", help="render_summary.json path")
+    p_validate_summary.set_defaults(func=cmd_validate_summary)
 
     p_render = sub.add_parser("render", help="render one artifact")
     p_render.add_argument("input", help="artifact json path / .jsonl / .zip")

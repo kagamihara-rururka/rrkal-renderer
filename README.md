@@ -41,6 +41,7 @@ rrkal-renderer --help
 
 ```bash
 python -m rrkal_renderer.cli validate path/to/run.json
+python -m rrkal_renderer.cli validate-summary path/to/render_summary.json
 ```
 
 ### render
