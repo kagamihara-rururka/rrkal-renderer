@@ -10,7 +10,7 @@ import zipfile
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Tuple
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple
 
 
 SUPPORTED_SCHEMA_VERSION = {"2.0.0"}
@@ -116,6 +116,7 @@ def _write_render_summary(
     *,
     rendered: List[str],
     pdf_status: Dict[str, Any],
+    bundle_info: Optional[Dict[str, Any]] = None,
 ) -> None:
     summary = {
         "artifact_name": artifact_name,
@@ -126,6 +127,7 @@ def _write_render_summary(
         "outputs": {
             "rendered_files": rendered,
             "pdf": pdf_status,
+            "bundle": bundle_info or {"requested": False, "available": False, "path": "render_bundle.zip"},
         },
         "render_settings": {
             "title": args.title,
@@ -159,6 +161,7 @@ def _write_render_summary(
         f"<p>requested format: <code>{html.escape(args.format)}</code></p>",
         f"<p>schema_version: <code>{html.escape(str(payload.get('schema_version')))}</code></p>",
         f"<p>pdf export: <strong>{pdf_result}</strong></p>",
+        f"<p>bundle: requested=<strong>{bundle_info['requested'] if bundle_info else False}</strong> | available=<strong>{bundle_info['available'] if bundle_info else False}</strong> | path=<code>{html.escape((bundle_info or {}).get('path', 'render_bundle.zip'))}</code></p>",
         "<h2>Rendered files</h2>",
         "<ul>",
         output_links,
@@ -1749,6 +1752,13 @@ def _render_payload(
 
     rendered.append("render_summary.json")
     rendered.append("render_summary.html")
+    bundle_info = {"requested": should_bundle, "available": False, "path": "render_bundle.zip"}
+    if should_bundle:
+        rendered.append("render_bundle.zip")
+        if _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip"):
+            bundle_info["available"] = True
+        else:
+            rendered.remove("render_bundle.zip")
 
     _write_render_summary(
         out_dir,
@@ -1758,20 +1768,8 @@ def _render_payload(
         args,
         rendered=rendered,
         pdf_status=pdf_status,
+        bundle_info=bundle_info,
     )
-
-    if should_bundle:
-        rendered.append("render_bundle.zip")
-        if _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip"):
-            _write_render_summary(
-                out_dir,
-                artifact_name,
-                run_id,
-                payload,
-                args,
-                rendered=rendered,
-                pdf_status=pdf_status,
-            )
 
     return out_dir
 

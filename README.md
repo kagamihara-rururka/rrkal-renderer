@@ -10,6 +10,10 @@ RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifa
 - 渲染摘要（`render_summary.html/json`）
 - 報表打包（`render_bundle.zip`，與 report.html 同目錄）
   - `report.html` 會在支援打包的情境顯示 `Download Bundle` 按鈕，可直接下載全部輸出成果（含 `bundle_manifest.json`）
+- `render_summary.json` 會記錄 `outputs.bundle`：
+  - `requested`：是否啟用打包模式
+  - `available`：是否成功輸出 zip
+  - `path`：壓縮檔路徑（預設 `render_bundle.zip`）
 
 這個版本特別做了兩件事：
 
