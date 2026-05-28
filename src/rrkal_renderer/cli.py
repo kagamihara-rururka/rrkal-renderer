@@ -618,7 +618,7 @@ def _to_html(
         f"<body class=\"{body_class}\">",
         "  <div class='container'>",
         f"    <div class='title'>{safe_title}</div>",
-        f"    <div class='subtitle'>RRKAL 2.0.0 • photo-style pre-renderer • mode={body_class}</div>",
+        f"    <div class='subtitle'>RRKAL 2.0.0 �E photo-style pre-renderer �E mode={body_class}</div>",
         "    <section class='panel global-toolbar'>",
         "      <div class='toolbar'>",
         "        <div class='title-block'>",
@@ -652,7 +652,7 @@ def _to_html(
         f'        <div class="kpi"><div class="name">equity range</div><div class="val">{eq_stats["low"]:.4f} ~ {eq_stats["high"]:.4f}</div></div>',
         "      </div>",
         "      <p class='note'>Large dataset tip: use filters/sort first, then export filtered or visible rows.</p>",
-        "      <p class='hotkeys small'>Shortcuts: J/K or [] or ←/→ (page prev/next), ↑/↓ (row nav), Shift+Enter (copy first row on current page), Shift+Alt+Enter (copy last row on current page), Ctrl/Cmd+Shift+Enter (also copy first row), Home/End (jump first/last row), C/Enter (copy selected), F/T (focus symbol filters), R (reset active), 0 (clear filters)</p>",
+        "      <p class='hotkeys small'>Shortcuts: J/K or [] or ��/�� (page prev/next), ��/�� (row nav), Shift+Enter (copy first row on current page), Shift+Alt+Enter (copy last row on current page), Ctrl/Cmd+Shift+Enter (also copy first row), Home/End (jump first/last row), C/Enter (copy selected), F/T (focus symbol filters), R (reset active), 0 (clear filters)</p>",
         "    </section>",
         "    <section class='panel'>",
         "      <h3>2) Report summary</h3>",
@@ -663,7 +663,7 @@ def _to_html(
         "        <div class='panel-head'>",
         "          <h3>3) Equity Curve</h3>",
         "          <span class='panel-note'>Interactive render preview</span>",
-        "          <button class='collapse-btn' data-collapsible='1' data-target='equityPanelBody' aria-expanded='true' title='Collapse section'>▾</button>",
+        "          <button class='collapse-btn' data-collapsible='1' data-target='equityPanelBody' aria-expanded='true' title='Collapse section'>?</button>",
         "        </div>",
         "        <div class='panel-body' id='equityPanelBody'>",
         "        <div class='chart'>",
@@ -683,7 +683,7 @@ def _to_html(
         "        <div class='panel-head'>",
         "          <h3>4) Event Inspector</h3>",
         "          <span class='panel-note'>Filter by symbol/event / row preview</span>",
-        "          <button class='collapse-btn' data-collapsible='1' data-target='eventInspectorPanelBody' aria-expanded='true' title='Collapse section'>▾</button>",
+        "          <button class='collapse-btn' data-collapsible='1' data-target='eventInspectorPanelBody' aria-expanded='true' title='Collapse section'>?</button>",
         "        </div>",
         "        <div class='panel-body' id='eventInspectorPanelBody'>",
         "        <div class='toolbar inspector-meta'>",
@@ -720,7 +720,7 @@ def _to_html(
         "      <div class='panel-head'>",
         "        <h3>5) Trades Inspector</h3>",
         "        <span class='panel-note'>Sort + symbol chips + pagination</span>",
-        "        <button class='collapse-btn' data-collapsible='1' data-target='tradePanelBody' aria-expanded='true' title='Collapse section'>▾</button>",
+        "        <button class='collapse-btn' data-collapsible='1' data-target='tradePanelBody' aria-expanded='true' title='Collapse section'>?</button>",
         "      </div>",
         "      <div class='panel-body' id='tradePanelBody'>",
         "        <div class='toolbar inspector-meta'>",
@@ -1129,7 +1129,6 @@ def _to_html(
         "      if (!ts) return;",
         "      if (eventFrom) eventFrom.value = ts;",
         "      if (eventTo) eventTo.value = ts;",
-        "      eventPageState.page = 1;",
         "      renderEvents();",
         "      setActiveInspector('event');",
         "      if (eventBody && eventBody.querySelector('tr[data-row-index]')) {",
@@ -1137,6 +1136,11 @@ def _to_html(
         "      }",
         "      const nearest = findNearestEventIndexByTs(eventFiltered, ts);",
         "      if (nearest >= 0) {",
+        "      const targetPage = Math.floor(nearest / parsePageSize(eventPageSize)) + 1;"
+        "        if (eventPageState.page !== targetPage) {"
+        "          eventPageState.page = targetPage;"
+        "          renderEvents();"
+        "        }"
         "        const i = nearest;",
         "        const exact = eventFiltered[i] || null;",
         "        setSelectedEvent(exact);",
@@ -1220,7 +1224,7 @@ def _to_html(
         "      if (!body || !btn) return;",
         "      body.classList.toggle('hidden', !!collapsed);",
         "      btn.setAttribute('aria-expanded', String(!collapsed));",
-        "      btn.textContent = collapsed ? '▸' : '▾';",
+        "      btn.textContent = collapsed ? '?' : '?';",
         "      btn.title = collapsed ? 'Expand section' : 'Collapse section';",
         "      if (persist) {",
         "        try { localStorage.setItem(`rrkal-panel-${targetId}`, collapsed ? '1' : '0'); } catch (e) {}",
@@ -1677,4 +1681,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
