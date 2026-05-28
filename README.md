@@ -61,6 +61,9 @@ python -m rrkal_renderer.cli render path/to/run.json --format all
 # 只輸出 HTML + 降採樣設定
 python -m rrkal_renderer.cli render path/to/run.json --format html --equity-compress rdp --equity-max-points 8000
 
+# 只輸出 HTML 報表，但不打包（例如大資料量節省時間）
+python -m rrkal_renderer.cli render path/to/run.json --format html --no-bundle
+
 # 只輸出摘要（含 render_summary + render_bundle）
 python -m rrkal_renderer.cli render path/to/run.json --format md --export-csv --emit-svg
 
