@@ -174,12 +174,36 @@ def _write_bundle(out_dir: Path, file_names: List[str], *, bundle_name: str = "r
     bundle_path = out_dir / bundle_name
     candidates = [p for p in file_names if p != bundle_name]
     added = 0
+    manifest_items: List[Dict[str, Any]] = []
     with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for name in candidates:
             item = out_dir / name
             if item.exists():
                 zf.write(item, arcname=name)
+                manifest_items.append(
+                    {
+                        "name": name,
+                        "size_bytes": item.stat().st_size,
+                        "mtime": datetime.utcfromtimestamp(item.stat().st_mtime).isoformat() + "Z",
+                    }
+                )
                 added += 1
+        if added == 0:
+            return False
+        zf.writestr(
+            "bundle_manifest.json",
+            json.dumps(
+                {
+                    "bundle_name": bundle_name,
+                    "created_at": datetime.utcnow().isoformat() + "Z",
+                    "file_count": len(manifest_items),
+                    "items": manifest_items,
+                },
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            ),
+        )
     return added > 0
 
 
