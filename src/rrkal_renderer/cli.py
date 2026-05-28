@@ -1733,7 +1733,16 @@ def _render_payload(
     should_bundle = args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
     if should_bundle:
         rendered.append("render_bundle.zip")
-        _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip")
+        if _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip"):
+            _write_render_summary(
+                out_dir,
+                artifact_name,
+                run_id,
+                payload,
+                args,
+                rendered=rendered,
+                pdf_status=pdf_status,
+            )
 
     return out_dir
 
