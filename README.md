@@ -98,6 +98,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--equity-rdp-epsilon`
 - `--trade-max-rows`
 - `--event-max-rows`
+- `--html-row-cap`（預設 5000；`0` 表示不限制 HTML inspector 行數）
 - `--emit-svg`（若輸出同時包含任何可匯出檔案，會在輸出目錄補齊 `render_bundle.zip`）
 - `--export-csv`（同上）
 - `--export-jsonl`（同上）

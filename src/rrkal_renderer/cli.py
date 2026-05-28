@@ -681,6 +681,7 @@ def _to_html(
     rdp_epsilon: float,
     trade_max_rows: int,
     event_max_rows: int,
+    html_row_cap: int = 5000,
     photo_style: bool,
 ) -> str:
     evidence = _resolve_evidence(payload)
@@ -694,8 +695,24 @@ def _to_html(
         rdp_epsilon=rdp_epsilon,
     )
     path_d = _svg_polyline(sampled)
-    html_trade_cap = trade_max_rows if trade_max_rows > 0 else 5000
-    html_event_cap = event_max_rows if event_max_rows > 0 else 5000
+    html_trade_cap: int
+    if trade_max_rows > 0:
+        html_trade_cap = trade_max_rows
+    elif html_row_cap > 0:
+        html_trade_cap = html_row_cap
+    elif html_row_cap == 0:
+        html_trade_cap = len(trades)
+    else:
+        html_trade_cap = 5000
+
+    if event_max_rows > 0:
+        html_event_cap = event_max_rows
+    elif html_row_cap > 0:
+        html_event_cap = html_row_cap
+    elif html_row_cap == 0:
+        html_event_cap = len(events)
+    else:
+        html_event_cap = 5000
 
     trade_events = trades
     top_trades = (
@@ -1759,6 +1776,7 @@ def _render_payload(
             rdp_epsilon=args.equity_rdp_epsilon,
             trade_max_rows=args.trade_max_rows,
             event_max_rows=args.event_max_rows,
+            html_row_cap=args.html_row_cap,
             photo_style=args.photo_style,
         )
 
@@ -2084,6 +2102,12 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--equity-compress", choices=["auto", "rdp", "lttb", "uniform", "none"], default="auto", help="equity curve compression strategy")
     parser.add_argument("--equity-max-points", type=int, default=DEFAULT_EQUITY_MAX_POINTS, help="max points for html/svg equity rendering")
     parser.add_argument("--equity-rdp-epsilon", type=float, default=0.002, help="RDP epsilon when equity-compress=rdp")
+    parser.add_argument(
+        "--html-row-cap",
+        type=int,
+        default=5000,
+        help="max rows loaded into HTML inspectors when --trade-max-rows/--event-max-rows are unset (0 = unlimited)",
+    )
     parser.add_argument(
         "--bundle-manifest-only",
         dest="bundle_manifest_only",
