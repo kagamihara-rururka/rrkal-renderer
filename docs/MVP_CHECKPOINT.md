@@ -23,3 +23,4 @@
 - [x] 強化 `validate-summary` 契約檢查：新增 `render_settings.compact_layout` 欄位必填與型別驗證
 - [x] 新增 inspector 卡片式摘要模式（`Photo Layout` 時）與搜尋命中高亮 (`.match`)，事件/交易清單保留原始欄位並提供卡片摘要列
 - [x] 事件/交易渲染以 HTML 欄位插值進行摘要拼接，並在切換 `photo/compact` 時套用 `card-mode`，作為 RRKAL 大數據 inspector 的預渲染對齊方向
+- [x] 修正 Photo/Compact 切換事件綁定時機，改為 `bind` 初始化時一次綁定，避免切版切換時重複綁定事件導致錯誤累積
