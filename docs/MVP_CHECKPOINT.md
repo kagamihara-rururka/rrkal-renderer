@@ -16,3 +16,4 @@
 - [x] 強化報表互動：事件/交易列選取時，會同步將 equity 圖游標對位到最接近時間點
 - [x] 在 `render_summary.json` 的 `render_settings` 紀錄 `html_row_cap`，方便 RRKAL 追蹤 HTML inspector 行數策略
 - [x] 點擊 equity 點位時同步最近事件與最近交易列，增加事件/交易時間軸對焦
+- [x] 報表工具列加入「Photo Layout」即時切換（記錄到 localStorage，利於工作區偏好保持）
