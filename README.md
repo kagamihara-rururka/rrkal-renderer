@@ -105,6 +105,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--pdf-meta`：PDF metadata note
 - `--bundle` / `--no-bundle`（控制是否強制/取消輸出 bundle，預設依條件自動判斷）
 - `--bundle-manifest-only`（只輸出 `bundle_manifest.json`，不壓縮）
+- `bundle_manifest.json` 內會保留 `bundle_name`（固定為 `render_bundle.zip`）與 `bundle_mode`（`manifest`/`zip`/`none`）
 - `--photo-style` / `--no-photo-style`
 
 ## 注意事項

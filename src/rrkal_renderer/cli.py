@@ -213,7 +213,13 @@ def _write_bundle(out_dir: Path, file_names: List[str], *, bundle_name: str = "r
     return added > 0
 
 
-def _build_bundle_manifest(out_dir: Path, file_names: List[str], *, manifest_name: str = "bundle_manifest.json") -> bool:
+def _build_bundle_manifest(
+    out_dir: Path,
+    file_names: List[str],
+    *,
+    bundle_name: str = "render_bundle.zip",
+    manifest_name: str = "bundle_manifest.json",
+) -> bool:
     candidates = [p for p in file_names if p != manifest_name]
     manifest_items: List[Dict[str, Any]] = []
     added = 0
@@ -234,7 +240,8 @@ def _build_bundle_manifest(out_dir: Path, file_names: List[str], *, manifest_nam
         out_dir / manifest_name,
         json.dumps(
             {
-                "bundle_name": manifest_name,
+                "bundle_name": bundle_name,
+                "bundle_mode": "manifest",
                 "created_at": datetime.utcnow().isoformat() + "Z",
                 "file_count": len(manifest_items),
                 "items": manifest_items,
@@ -1800,7 +1807,12 @@ def _render_payload(
         if args.bundle_manifest_only:
             bundle_file = "bundle_manifest.json"
             bundle_info = {"requested": True, "available": False, "path": bundle_file, "mode": "manifest"}
-            if _build_bundle_manifest(out_dir, rendered, manifest_name=bundle_file):
+            if _build_bundle_manifest(
+                out_dir,
+                rendered,
+                bundle_name="render_bundle.zip",
+                manifest_name=bundle_file,
+            ):
                 rendered.append(bundle_file)
                 bundle_info["available"] = True
         else:
