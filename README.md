@@ -19,6 +19,11 @@ RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifa
 python -m pip install -e .
 ```
 
+```bash
+# 僅需 PDF 功能時
+python -m pip install -e ".[pdf]"
+```
+
 ## 快速上手
 
 ```bash
@@ -39,6 +44,9 @@ python -m rrkal_renderer.cli render path/to/run.json
 
 # 只輸出 PDF 報表（需要安裝 PDF 轉換後端）
 python -m rrkal_renderer.cli render path/to/run.json --format pdf
+
+# 輸出全部時若缺少 PDF 轉換套件，會保留 `pdf_export_error.txt` 而不中斷其他輸出
+python -m rrkal_renderer.cli render path/to/run.json --format all
 
 # 只輸出 HTML + 降採樣設定
 python -m rrkal_renderer.cli render path/to/run.json --format html --equity-compress rdp --equity-max-points 8000

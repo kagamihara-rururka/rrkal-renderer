@@ -60,15 +60,16 @@ def _emit_jsonl(path: str, rows: Iterable[Dict[str, Any]]) -> None:
             fp.write("\n")
 
 
-def _write_pdf(path: Path, html_content: str) -> None:
+def _write_pdf(path: Path, html_content: str, *, required: bool) -> str | None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    details = None
 
     weasy_error: Exception | None = None
     try:
         from weasyprint import HTML
 
         HTML(string=html_content).write_pdf(str(path))
-        return
+        return None
     except Exception as exc:
         weasy_error = exc
 
@@ -76,13 +77,16 @@ def _write_pdf(path: Path, html_content: str) -> None:
         import pdfkit
 
         pdfkit.from_string(html_content, str(path))
-        return
+        return None
     except Exception as exc:
-        raise RuntimeError(
+        details = (
             "PDF export unavailable. Install one of: `pip install weasyprint` "
             "(preferred), or `pip install pdfkit` and provide wkhtmltopdf. "
             f"weasyprint error: {weasy_error}; pdfkit error: {exc}"
-        ) from exc
+        )
+        if required:
+            raise RuntimeError(details) from exc
+    return details
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -1532,7 +1536,12 @@ def _render_payload(
     if args.format in ("all", "pdf"):
         if not html_content:
             raise RuntimeError("Unable to generate HTML content for PDF export")
-        _write_pdf(out_dir / "report.pdf", html_content)
+        pdf_error = _write_pdf(out_dir / "report.pdf", html_content, required=(args.format == "pdf"))
+        if pdf_error:
+            if args.format == "all":
+                _write_text(out_dir / "pdf_export_error.txt", pdf_error)
+            else:
+                raise RuntimeError(pdf_error)
 
     if args.emit_svg or args.format in ("all", "svg"):
         _write_svg(out_dir / "equity_curve.svg", sampled_equity)

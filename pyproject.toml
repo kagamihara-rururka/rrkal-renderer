@@ -6,5 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
+[project.optional-dependencies]
+pdf = ["weasyprint"]
+
 [project.scripts]
 rrkal-renderer = "rrkal_renderer.cli:main"
