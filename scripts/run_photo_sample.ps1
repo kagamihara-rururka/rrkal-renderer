@@ -40,6 +40,7 @@ $pyScript = $scriptArgs[1]
 $report = Join-Path $outDir "report.html"
 if (Test-Path $report) {
     Write-Host "[RRKAL RenderKit] done: $report"
+    Start-Process $report
 } else {
     Write-Warning "[RRKAL RenderKit] report not found: $report"
 }
