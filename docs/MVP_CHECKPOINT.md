@@ -12,4 +12,4 @@
 - [x] 支援 trades/events/equity 的 CSV 與 events JSONL 匯出
 - [x] 支援壓縮包輸入（jsonl / zip）
 - [x] 支援 equity SVG 輸出（`equity_curve.svg`）
-- [ ] 支援 PDF 輸出
+- [x] 支援 PDF 輸出

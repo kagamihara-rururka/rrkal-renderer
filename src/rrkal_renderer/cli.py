@@ -60,6 +60,31 @@ def _emit_jsonl(path: str, rows: Iterable[Dict[str, Any]]) -> None:
             fp.write("\n")
 
 
+def _write_pdf(path: Path, html_content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    weasy_error: Exception | None = None
+    try:
+        from weasyprint import HTML
+
+        HTML(string=html_content).write_pdf(str(path))
+        return
+    except Exception as exc:
+        weasy_error = exc
+
+    try:
+        import pdfkit
+
+        pdfkit.from_string(html_content, str(path))
+        return
+    except Exception as exc:
+        raise RuntimeError(
+            "PDF export unavailable. Install one of: `pip install weasyprint` "
+            "(preferred), or `pip install pdfkit` and provide wkhtmltopdf. "
+            f"weasyprint error: {weasy_error}; pdfkit error: {exc}"
+        ) from exc
+
+
 def _as_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -1485,20 +1510,29 @@ def _render_payload(
     if args.format in ("all", "md"):
         _write_text(out_dir / "report.md", _summary_markdown(payload, len(equity_points), len(sampled_equity)))
 
+    html_content: str | None = None
+    if args.format in ("all", "html", "pdf"):
+        html_content = _to_html(
+            payload=payload,
+            title=args.title,
+            max_equity_points=args.equity_max_points,
+            equity_compress=args.equity_compress,
+            rdp_epsilon=args.equity_rdp_epsilon,
+            trade_max_rows=args.trade_max_rows,
+            event_max_rows=args.event_max_rows,
+            photo_style=args.photo_style,
+        )
+
     if args.format in ("all", "html"):
         _write_text(
             out_dir / "report.html",
-            _to_html(
-                payload=payload,
-                title=args.title,
-                max_equity_points=args.equity_max_points,
-                equity_compress=args.equity_compress,
-                rdp_epsilon=args.equity_rdp_epsilon,
-                trade_max_rows=args.trade_max_rows,
-                event_max_rows=args.event_max_rows,
-                photo_style=args.photo_style,
-            ),
+            html_content or "",
         )
+
+    if args.format in ("all", "pdf"):
+        if not html_content:
+            raise RuntimeError("Unable to generate HTML content for PDF export")
+        _write_pdf(out_dir / "report.pdf", html_content)
 
     if args.emit_svg or args.format in ("all", "svg"):
         _write_svg(out_dir / "equity_curve.svg", sampled_equity)
@@ -1613,7 +1647,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 
 def _add_render_options(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--format", choices=["all", "md", "html", "json", "svg"], default="all", help="output artifacts")
+    parser.add_argument(
+        "--format",
+        choices=["all", "md", "html", "json", "svg", "pdf"],
+        default="all",
+        help="output artifacts",
+    )
     parser.add_argument("--title", default="RRKAL Render Report", help="html page title")
     parser.add_argument(
         "--photo-style",

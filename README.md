@@ -5,6 +5,7 @@ RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifa
 - Markdown 摘要（`report.md`）
 - HTML 互動報表（`report.html`）
 - SVG 股權曲線（`equity_curve.svg`）
+- PDF 報表（`report.pdf`）
 - CSV/JSONL 導出（`trades.csv`、`equity_curve.csv`、`events.csv`、`events.jsonl`）
 
 這個版本特別做了兩件事：
@@ -57,7 +58,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 ## 輸出參數
 
 - `--lenient`：放寬 `schema_version` 驗證
-- `--format {all,md,html,json,svg}`
+- `--format {all,md,html,json,svg,pdf}`
 - `--equity-compress {auto,rdp,lttb,uniform,none}`
 - `--equity-max-points`（預設 5000）
 - `--equity-rdp-epsilon`
