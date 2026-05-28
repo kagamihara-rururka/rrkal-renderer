@@ -1,9 +1,10 @@
 ﻿[project]
 name = "rrkal-renderer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Standalone renderer for RRKAL artifacts"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-  "python-dateutil>=2.9.0",
-]
+dependencies = []
+
+[project.scripts]
+rrkal-renderer = "rrkal_renderer.cli:main"
