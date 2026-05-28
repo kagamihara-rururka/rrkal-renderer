@@ -1,49 +1,74 @@
-﻿# RRKAL RenderKit (MVP)
+# RRKAL RenderKit（Photo-like 預渲染器）
 
-獨立於 RRKAL 核心的預渲染工具（pre-renderer）。
+RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifact 並輸出可直接交付前端/分析使用的報表：
 
-## 目標
-- 將 RRKAL artifact (`.json`) 轉成可閱讀報告：
-  - `report.md`
-  - `report.html`（含簡版 equity 曲線與交易表）
-- 保留可追溯輸出：CSV + JSONL（可選）
-- 支援單檔與資料夾批次預渲染
+- Markdown 摘要（`report.md`）
+- HTML 互動報表（`report.html`）
+- SVG 股權曲線（`equity_curve.svg`）
+- CSV/JSONL 導出（`trades.csv`、`equity_curve.csv`、`events.csv`、`events.jsonl`）
 
-## 核心流程（Governance 對齊）
-- R（Requirements）：每次輸出前先做 schema 驗證
-- R（Risks）：缺欄位、schema 版本不符、資料空值會有清楚錯誤訊息
-- K（Keep / Known / Ask / Learn）：沿用 RRKAL `2.0.0` artifact 格式並逐步擴展
-- A（Assurance）：`validate` 與 `render` 都會輸出可核對紀錄
-- L（Lifecycle）：輸出檔案放在指定目錄，便於版本追蹤
+這個版本特別做了兩件事：
+
+1. 優先對齊「photo-like」檢視習慣（卡片化 KPI、快速篩選、互動表格）
+2. 針對大資料做前置降採樣（`rdp` / `lttb` / `uniform`）避免前端卡頓
 
 ## 安裝
 
 ```bash
-# 可直接執行，不需要額外套件
+python -m pip install -e .
 ```
 
-## 使用
+## 快速上手
 
 ```bash
-# 驗證 artifact
-python -m rrkal_renderer.cli validate path/to/run.json
-
-# 單檔預渲染（輸出 md + html）
-python -m rrkal_renderer.cli render path/to/run.json
-
-# 單檔只輸出 html，並導出 csv
-python -m rrkal_renderer.cli render path/to/run.json --format html --export-csv --output-dir outputs/first
-
-# 批次渲染整個目錄
-python -m rrkal_renderer.cli render-batch path/to/results_dir --pattern *.json --output-root outputs/batch
-
-# 輸出 json 備份
-python -m rrkal_renderer.cli render path/to/run.json --format json --output-dir outputs/json_pack
+rrkal-renderer --help
 ```
 
-### 參數
-- `--lenient`：放寬 schema 版本檢查
-- `--format {all,md,html,json}`：預設 `all`
-- `--export-csv`：輸出 `trades.csv`、`equity_curve.csv`、`events.csv`
-- `--export-jsonl`：輸出 `events.jsonl`
-- `render-batch`：可用 `--pattern` 支援多格式（例如 `*.json`）
+### validate
+
+```bash
+python -m rrkal_renderer.cli validate path/to/run.json
+```
+
+### render
+
+```bash
+# 預設輸出 HTML / MD / JSON 元資訊 / SVG
+python -m rrkal_renderer.cli render path/to/run.json
+
+# 只輸出 HTML + 降採樣設定
+python -m rrkal_renderer.cli render path/to/run.json --format html --equity-compress rdp --equity-max-points 8000
+
+# 加速分析：輸出 csv
+python -m rrkal_renderer.cli render path/to/run.json --emit-svg --export-csv --output-dir outputs/run01
+
+# 啟用 / 停用 photo-like 版型
+python -m rrkal_renderer.cli render path/to/run.json --photo-style
+python -m rrkal_renderer.cli render path/to/run.json --no-photo-style
+```
+
+### 批次
+
+```bash
+python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.json" --output-root outputs/batch
+python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl" --equity-compress lttb --equity-max-points 6000
+```
+
+## 輸出參數
+
+- `--lenient`：放寬 `schema_version` 驗證
+- `--format {all,md,html,json,svg}`
+- `--equity-compress {auto,rdp,lttb,uniform,none}`
+- `--equity-max-points`（預設 5000）
+- `--equity-rdp-epsilon`
+- `--trade-max-rows`
+- `--event-max-rows`
+- `--emit-svg`
+- `--export-csv`
+- `--export-jsonl`
+- `--photo-style` / `--no-photo-style`
+
+## 注意事項
+
+- 只會驗證 artifact 的結構是否可載入，不做 RRKAL 執行/交易決策
+- `schema_version` 預設採 `2.0.0`，未通過可在 `--lenient` 開啟後繼續輸出

@@ -1,6 +1,6 @@
-﻿[project]
+[project]
 name = "rrkal-renderer"
-version = "0.2.0"
+version = "0.3.0"
 description = "Standalone renderer for RRKAL artifacts"
 readme = "README.md"
 requires-python = ">=3.10"
