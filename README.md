@@ -198,3 +198,7 @@ Downstream rule:
 - If `outputs.bundle.mode` is `zip`, RRKAL should treat `outputs.bundle.path` as the downloadable artifact.
 - If `outputs.bundle.mode` is `manifest`, RRKAL should treat `outputs.bundle.path` as pre-export inventory.
 - If `outputs.bundle.mode` is `none`, RRKAL should ignore bundle download path and rely on `requested`/`reason`.
+
+### Large artifact behavior (HTML preview)
+- `--trade-max-rows` and `--event-max-rows` still control full export payload size.
+- For HTML rendering, trade/event inspectors are capped internally for browser stability (default cap: 5,000 rows when value is `0`, otherwise use the provided limit).

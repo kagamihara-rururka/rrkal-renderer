@@ -694,28 +694,30 @@ def _to_html(
         rdp_epsilon=rdp_epsilon,
     )
     path_d = _svg_polyline(sampled)
+    html_trade_cap = trade_max_rows if trade_max_rows > 0 else 5000
+    html_event_cap = event_max_rows if event_max_rows > 0 else 5000
 
     trade_events = trades
     top_trades = (
         heapq.nlargest(
-            trade_max_rows,
+            html_trade_cap,
             trade_events,
             key=lambda row: abs(_as_float(row.get("pnl", 0.0), 0.0)),
         )
-        if trade_max_rows > 0
+        if html_trade_cap > 0
         else trade_events
     )
 
     recent_events = (
         heapq.nlargest(
-            event_max_rows,
+            html_event_cap,
             events,
             key=lambda row: _as_text(row.get("timestamp", "")),
         )
-        if event_max_rows > 0
+        if html_event_cap > 0
         else sorted(events, key=lambda row: _as_text(row.get("timestamp", "")), reverse=True)
     )
-    if event_max_rows > 0:
+    if html_event_cap > 0:
         recent_events = sorted(
             recent_events,
             key=lambda row: _as_text(row.get("timestamp", "")),
