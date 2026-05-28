@@ -161,7 +161,10 @@ def _write_render_summary(
         f"<p>requested format: <code>{html.escape(args.format)}</code></p>",
         f"<p>schema_version: <code>{html.escape(str(payload.get('schema_version')))}</code></p>",
         f"<p>pdf export: <strong>{pdf_result}</strong></p>",
-        f"<p>bundle: requested=<strong>{bundle_info['requested'] if bundle_info else False}</strong> | available=<strong>{bundle_info['available'] if bundle_info else False}</strong> | path=<code>{html.escape((bundle_info or {}).get('path', 'render_bundle.zip'))}</code></p>",
+        f"<p>bundle: requested=<strong>{bundle_info['requested'] if bundle_info else False}</strong> | "
+        f"available=<strong>{bundle_info['available'] if bundle_info else False}</strong> | "
+        f"mode=<strong>{html.escape((bundle_info or {}).get('mode', 'zip'))}</strong> | "
+        f"path=<code>{html.escape((bundle_info or {}).get('path', 'render_bundle.zip'))}</code></p>",
         "<h2>Rendered files</h2>",
         "<ul>",
         output_links,
@@ -208,6 +211,40 @@ def _write_bundle(out_dir: Path, file_names: List[str], *, bundle_name: str = "r
             ),
         )
     return added > 0
+
+
+def _build_bundle_manifest(out_dir: Path, file_names: List[str], *, manifest_name: str = "bundle_manifest.json") -> bool:
+    candidates = [p for p in file_names if p != manifest_name]
+    manifest_items: List[Dict[str, Any]] = []
+    added = 0
+    for name in candidates:
+        item = out_dir / name
+        if item.exists():
+            manifest_items.append(
+                {
+                    "name": name,
+                    "size_bytes": item.stat().st_size,
+                    "mtime": datetime.utcfromtimestamp(item.stat().st_mtime).isoformat() + "Z",
+                }
+            )
+            added += 1
+    if added == 0:
+        return False
+    _write_text(
+        out_dir / manifest_name,
+        json.dumps(
+            {
+                "bundle_name": manifest_name,
+                "created_at": datetime.utcnow().isoformat() + "Z",
+                "file_count": len(manifest_items),
+                "items": manifest_items,
+            },
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        ),
+    )
+    return True
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -1662,11 +1699,12 @@ def _render_payload(
         if args.bundle is False
         else args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
     )
+    should_bundle_zip = should_bundle and not args.bundle_manifest_only
     if args.format in ("all", "html", "pdf"):
         html_content = _to_html(
             payload=payload,
             title=args.title,
-            show_download_bundle=should_bundle,
+            show_download_bundle=should_bundle_zip,
             max_equity_points=args.equity_max_points,
             equity_compress=args.equity_compress,
             rdp_epsilon=args.equity_rdp_epsilon,
@@ -1758,13 +1796,21 @@ def _render_payload(
 
     rendered.append("render_summary.json")
     rendered.append("render_summary.html")
-    bundle_info = {"requested": should_bundle, "available": False, "path": "render_bundle.zip"}
     if should_bundle:
-        rendered.append("render_bundle.zip")
-        if _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip"):
-            bundle_info["available"] = True
+        if args.bundle_manifest_only:
+            bundle_file = "bundle_manifest.json"
+            bundle_info = {"requested": True, "available": False, "path": bundle_file, "mode": "manifest"}
+            if _build_bundle_manifest(out_dir, rendered, manifest_name=bundle_file):
+                rendered.append(bundle_file)
+                bundle_info["available"] = True
         else:
-            rendered.remove("render_bundle.zip")
+            bundle_file = "render_bundle.zip"
+            bundle_info = {"requested": True, "available": False, "path": bundle_file, "mode": "zip"}
+            if _write_bundle(out_dir, rendered, bundle_name=bundle_file):
+                rendered.append(bundle_file)
+                bundle_info["available"] = True
+    else:
+        bundle_info = {"requested": False, "available": False, "path": "render_bundle.zip", "mode": "none"}
 
     _write_render_summary(
         out_dir,
@@ -1886,6 +1932,12 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--equity-max-points", type=int, default=DEFAULT_EQUITY_MAX_POINTS, help="max points for html/svg equity rendering")
     parser.add_argument("--equity-rdp-epsilon", type=float, default=0.002, help="RDP epsilon when equity-compress=rdp")
     parser.add_argument(
+        "--bundle-manifest-only",
+        dest="bundle_manifest_only",
+        action="store_true",
+        help="generate bundle_manifest.json only (no render_bundle.zip) when bundle is requested",
+    )
+    parser.add_argument(
         "--trade-max-rows",
         type=int,
         default=DEFAULT_TRADE_MAX_ROWS,
@@ -1907,7 +1959,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="RRKAL RenderKit",
         epilog=(
             "Bundle behavior: render_bundle.zip is generated for format all/md/html/json/pdf or when "
-            "--emit-svg/--export-csv/--export-jsonl are enabled. Use --bundle/--no-bundle to force or skip."
+            "--emit-svg/--export-csv/--export-jsonl are enabled. Use --bundle/--no-bundle to force or skip. "
+            "Use --bundle-manifest-only for manifest-first mode."
         ),
     )
     parser.add_argument("--lenient", action="store_true", help="skip strict schema_version check")

@@ -70,6 +70,9 @@ python -m rrkal_renderer.cli render path/to/run.json --format md --export-csv --
 # 只輸出 JSON + 打包
 python -m rrkal_renderer.cli render path/to/run.json --format json --export-jsonl
 
+# 只生成 bundle manifest（不產生 zip）
+python -m rrkal_renderer.cli render path/to/run.json --format md --bundle-manifest-only
+
 # 加速分析：輸出 csv
 python -m rrkal_renderer.cli render path/to/run.json --emit-svg --export-csv --output-dir outputs/run01
 
@@ -100,7 +103,8 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--format all|md|html|json|pdf`（同時會輸出 `render_bundle.zip`，有摘要時便可直接下載）
 - `--pdf-title`：PDF metadata title
 - `--pdf-meta`：PDF metadata note
-- `--bundle` / `--no-bundle`（控制是否強制/取消輸出 `render_bundle.zip`，預設依條件自動判斷）
+- `--bundle` / `--no-bundle`（控制是否強制/取消輸出 bundle，預設依條件自動判斷）
+- `--bundle-manifest-only`（只輸出 `bundle_manifest.json`，不壓縮）
 - `--photo-style` / `--no-photo-style`
 
 ## 注意事項
