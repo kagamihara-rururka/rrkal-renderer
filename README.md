@@ -97,6 +97,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--format all|md|html|json|pdf`（同時會輸出 `render_bundle.zip`，有摘要時便可直接下載）
 - `--pdf-title`：PDF metadata title
 - `--pdf-meta`：PDF metadata note
+- `--bundle` / `--no-bundle`（控制是否強制/取消輸出 `render_bundle.zip`，預設依條件自動判斷）
 - `--photo-style` / `--no-photo-style`
 
 ## 注意事項

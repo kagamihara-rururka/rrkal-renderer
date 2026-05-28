@@ -1655,7 +1655,13 @@ def _render_payload(
         rendered.append("report.md")
 
     html_content: str | None = None
-    should_bundle = args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
+    should_bundle = (
+        True
+        if args.bundle is True
+        else False
+        if args.bundle is False
+        else args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
+    )
     if args.format in ("all", "html", "pdf"):
         html_content = _to_html(
             payload=payload,
@@ -1846,6 +1852,20 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         default="all",
         help="output artifacts (all/md/html/json/svg/pdf), bundle formats all/md/html/json/pdf auto-enable render_bundle.zip",
     )
+    bundle_mode = parser.add_mutually_exclusive_group()
+    bundle_mode.add_argument(
+        "--bundle",
+        dest="bundle",
+        action="store_true",
+        help="force rendering render_bundle.zip",
+    )
+    bundle_mode.add_argument(
+        "--no-bundle",
+        dest="bundle",
+        action="store_false",
+        help="skip rendering render_bundle.zip",
+    )
+    parser.set_defaults(bundle=None)
     parser.add_argument("--title", default="RRKAL Render Report", help="html page title")
     parser.add_argument("--pdf-title", help="custom title used for report.pdf metadata")
     parser.add_argument("--pdf-meta", help="custom metadata note written into report.pdf metadata")
@@ -1887,7 +1907,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="RRKAL RenderKit",
         epilog=(
             "Bundle behavior: render_bundle.zip is generated for format all/md/html/json/pdf or when "
-            "--emit-svg/--export-csv/--export-jsonl are enabled."
+            "--emit-svg/--export-csv/--export-jsonl are enabled. Use --bundle/--no-bundle to force or skip."
         ),
     )
     parser.add_argument("--lenient", action="store_true", help="skip strict schema_version check")
