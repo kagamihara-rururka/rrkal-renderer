@@ -1844,7 +1844,7 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         "--format",
         choices=["all", "md", "html", "json", "svg", "pdf"],
         default="all",
-        help="output artifacts",
+        help="output artifacts (all/md/html/json/svg/pdf), bundle formats all/md/html/json/pdf auto-enable render_bundle.zip",
     )
     parser.add_argument("--title", default="RRKAL Render Report", help="html page title")
     parser.add_argument("--pdf-title", help="custom title used for report.pdf metadata")
@@ -1877,13 +1877,19 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         default=DEFAULT_EVENT_MAX_ROWS,
         help="max events kept in html table and events csv (0 = unlimited)",
     )
-    parser.add_argument("--emit-svg", action="store_true", help="emit compact equity_curve.svg in output directory")
-    parser.add_argument("--export-csv", action="store_true", help="export trades/equity/events csv")
-    parser.add_argument("--export-jsonl", action="store_true", help="export events jsonl")
+    parser.add_argument("--emit-svg", action="store_true", help="emit compact equity_curve.svg in output directory (also enables render_bundle.zip)")
+    parser.add_argument("--export-csv", action="store_true", help="export trades/equity/events csv (also enables render_bundle.zip)")
+    parser.add_argument("--export-jsonl", action="store_true", help="export events jsonl (also enables render_bundle.zip)")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="RRKAL RenderKit")
+    parser = argparse.ArgumentParser(
+        description="RRKAL RenderKit",
+        epilog=(
+            "Bundle behavior: render_bundle.zip is generated for format all/md/html/json/pdf or when "
+            "--emit-svg/--export-csv/--export-jsonl are enabled."
+        ),
+    )
     parser.add_argument("--lenient", action="store_true", help="skip strict schema_version check")
     sub = parser.add_subparsers(dest="command")
 
