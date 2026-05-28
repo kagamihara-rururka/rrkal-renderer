@@ -674,7 +674,7 @@ def _summary_markdown(payload: Dict[str, Any], point_count: int, rendered_point_
 def _to_html(
     payload: Dict[str, Any],
     title: str,
-    show_download_bundle: bool,
+    bundle_download_name: str | None,
     max_equity_points: int,
     equity_compress: str,
     rdp_epsilon: float,
@@ -840,7 +840,7 @@ def _to_html(
         "        </select>",
         "        <button id='globalReset'>Clear Search</button>",
     ]
-    if show_download_bundle:
+    if bundle_download_name:
         html_lines.extend(["        <button id='exportBundle'>Download Bundle</button>"])
     html_lines.extend([
         "        <span id='globalMatch' class='badge'>No global query</span>",
@@ -988,6 +988,7 @@ def _to_html(
         "    const eventExport = document.querySelector('#eventExport');",
         "    const tradeExport = document.querySelector('#tradeExport');",
         "    const exportBundle = document.querySelector('#exportBundle');",
+        f"    const bundleDownloadName = '{html.escape(bundle_download_name or '', quote=True)}';",
         "    const equityPanel = document.querySelector('#equityPanel');",
         "    const eventPanel = document.querySelector('#eventPanel');",
         "    const tradePanel = document.querySelector('#tradePanel');",
@@ -1068,9 +1069,10 @@ def _to_html(
         "      return { offset, end };",
         "    }",
         "    function downloadBundle(filename='render_bundle.zip'){",
+        "      const name = (typeof filename === 'string' && filename.trim()) ? filename.trim() : 'render_bundle.zip';",
         "      const link = document.createElement('a');",
-        "      link.href = filename;",
-        "      link.download = filename;",
+        "      link.href = name;",
+        "      link.download = name;",
         "      link.style.display = 'none';",
         "      document.body.appendChild(link);",
         "      link.click();",
@@ -1569,7 +1571,7 @@ def _to_html(
         "      tradeExport.addEventListener('click', ()=>{ const filename = 'trades_visible_' + Date.now() + '.csv'; downloadCSV(filename, tradeRows); });",
         "      eventExportAll.addEventListener('click', ()=>{ const filename = 'events_filtered_' + Date.now() + '.csv'; downloadCSV(filename, eventFiltered); });",
         "      tradeExportAll.addEventListener('click', ()=>{ const filename = 'trades_filtered_' + Date.now() + '.csv'; downloadCSV(filename, tradeFiltered); });",
-        "      if (exportBundle) { exportBundle.addEventListener('click', ()=>{ downloadBundle('render_bundle.zip'); }); }",
+        "      if (exportBundle) { exportBundle.addEventListener('click', ()=>{ downloadBundle(bundleDownloadName || 'render_bundle.zip'); }); }",
         "      eventCopyRow.addEventListener('click', ()=> copyRowText(selectedEventRow ? JSON.stringify(selectedEventRow, null, 2) : ''));",
         "      tradeCopyRow.addEventListener('click', ()=> copyRowText(selectedTradeRow ? JSON.stringify(selectedTradeRow, null, 2) : ''));",
         "      setActiveInspector('event');",
@@ -1727,11 +1729,16 @@ def _render_payload(
         should_bundle = should_bundle_auto
 
     should_bundle_zip = should_bundle and not args.bundle_manifest_only
+    bundle_download_name: str | None = (
+        "bundle_manifest.json"
+        if should_bundle and args.bundle_manifest_only
+        else ("render_bundle.zip" if should_bundle_zip else None)
+    )
     if args.format in ("all", "html", "pdf"):
         html_content = _to_html(
             payload=payload,
             title=args.title,
-            show_download_bundle=should_bundle_zip,
+            bundle_download_name=bundle_download_name,
             max_equity_points=args.equity_max_points,
             equity_compress=args.equity_compress,
             rdp_epsilon=args.equity_rdp_epsilon,
@@ -2132,5 +2139,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
 
