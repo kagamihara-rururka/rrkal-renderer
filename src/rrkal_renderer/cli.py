@@ -1708,7 +1708,7 @@ def _render_payload(
 
     html_content: str | None = None
     should_bundle_auto = (
-        args.format in ("all", "md", "html", "json", "pdf")
+        args.format in ("all", "md", "html", "json", "pdf", "svg")
         or args.emit_svg
         or args.export_csv
         or args.export_jsonl
@@ -1948,7 +1948,7 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         "--format",
         choices=["all", "md", "html", "json", "svg", "pdf"],
         default="all",
-        help="output artifacts (all/md/html/json/svg/pdf), bundle formats all/md/html/json/pdf auto-enable render_bundle.zip",
+        help="output artifacts (all/md/html/json/svg/pdf), bundle formats all/md/html/json/svg/pdf auto-enable render_bundle.zip",
     )
     bundle_mode = parser.add_mutually_exclusive_group()
     bundle_mode.add_argument(
@@ -2001,16 +2001,16 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         default=DEFAULT_EVENT_MAX_ROWS,
         help="max events kept in html table and events csv (0 = unlimited)",
     )
-    parser.add_argument("--emit-svg", action="store_true", help="emit compact equity_curve.svg in output directory (also enables render_bundle.zip)")
-    parser.add_argument("--export-csv", action="store_true", help="export trades/equity/events csv (also enables render_bundle.zip)")
-    parser.add_argument("--export-jsonl", action="store_true", help="export events jsonl (also enables render_bundle.zip)")
+    parser.add_argument("--emit-svg", action="store_true", help="emit compact equity_curve.svg in output directory (also enables bundle)")
+    parser.add_argument("--export-csv", action="store_true", help="export trades/equity/events csv (also enables bundle)")
+    parser.add_argument("--export-jsonl", action="store_true", help="export events jsonl (also enables bundle)")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="RRKAL RenderKit",
         epilog=(
-            "Bundle behavior: render_bundle.zip is generated for format all/md/html/json/pdf or when "
+            "Bundle behavior: render_bundle.zip is generated for format all/md/html/json/svg/pdf or when "
             "--emit-svg/--export-csv/--export-jsonl are enabled. Use --bundle/--no-bundle to force or skip. "
             "Use --bundle-manifest-only for manifest-first mode."
         ),

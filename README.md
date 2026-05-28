@@ -142,3 +142,27 @@ Mode mapping:
 - `zip`: command path produces/requests full `render_bundle.zip` (`--bundle`, or auto when format/json/html/md/pdf/svg/csv/jsonl exports are enabled)
 - `manifest`: `--bundle-manifest-only` was used
 - `none`: bundle is skipped (`--no-bundle`, or no auto-trigger for bundle)
+
+Example `outputs.bundle` payload:
+
+```json
+{
+  "mode": "zip",
+  "path": "render_bundle.zip",
+  "requested": true,
+  "available": true,
+  "reason": "bundle zip generated"
+}
+```
+
+When bundle is skipped:
+
+```json
+{
+  "mode": "none",
+  "path": "render_bundle.zip",
+  "requested": false,
+  "available": false,
+  "reason": "disabled by --no-bundle"
+}
+```
