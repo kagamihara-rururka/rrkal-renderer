@@ -80,6 +80,10 @@ python -m rrkal_renderer.cli render path/to/run.json --emit-svg --export-csv --o
 # 啟用 / 停用 photo-like 版型
 python -m rrkal_renderer.cli render path/to/run.json --photo-style
 python -m rrkal_renderer.cli render path/to/run.json --no-photo-style
+
+# generate photo-style sample artifact + render preview html
+python scripts/generate_photo_sample.py --render --overwrite
+python scripts/generate_photo_sample.py --trade-count 80 --event-count 90 --equity-count 400 --render --photo-preset photo
 ```
 
 ### 批次
@@ -109,6 +113,7 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--bundle-manifest-only`（只輸出 `bundle_manifest.json`，不壓縮）
 - `bundle_manifest.json` 內會保留 `bundle_name`（固定為 `render_bundle.zip`）與 `bundle_mode`（`manifest`/`zip`/`none`）
 - `--photo-style` / `--no-photo-style`
+- `--photo-preset photo|photo-compact|classic`
 - Selecting an event/trade row now syncs the equity chart cursor to nearest matching timestamp (useful for big artifacts).
 
 ## 注意事項
