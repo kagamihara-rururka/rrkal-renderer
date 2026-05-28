@@ -19,3 +19,4 @@
 - [x] 報表工具列加入「Photo Layout」即時切換（記錄到 localStorage，利於工作區偏好保持）
 - [x] `Photo Layout` 按鈕同步更新副標題並加入 `P` 快捷鍵切換
 - [x] 新增 `Compact View` 切換（`M` 快捷鍵 + `localStorage` 持久化，切換表格/卡片/版面密度，服務大數據瀏覽）
+- [x] 加入 CLI `--compact/--no-compact` 控制輸出時是否以 compact 初始密度開啟，並在 `render_summary.json` 紀錄

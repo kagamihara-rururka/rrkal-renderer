@@ -146,6 +146,7 @@ def _write_render_summary(
             "trade_max_rows": args.trade_max_rows,
             "event_max_rows": args.event_max_rows,
             "html_row_cap": args.html_row_cap,
+            "compact_layout": args.compact_layout,
             "equity_max_points": args.equity_max_points,
             "equity_compress": args.equity_compress,
             "equity_rdp_epsilon": args.equity_rdp_epsilon,
@@ -684,6 +685,7 @@ def _to_html(
     event_max_rows: int,
     html_row_cap: int = 5000,
     photo_style: bool,
+    compact_layout: bool = False,
 ) -> str:
     evidence = _resolve_evidence(payload)
     trades = _extract_trades(evidence)
@@ -769,6 +771,8 @@ def _to_html(
     safe_title = html.escape(title, quote=True)
     safe_run_id = html.escape(_resolve_run_id(payload), quote=True)
     body_class = "photo" if photo_style else "classic"
+    if compact_layout:
+        body_class += " compact"
     chip_block = "".join(
         f'<span class="chip" data-event="{html.escape(name, quote=True)}">{html.escape(name)}</span>'
         for name in event_chip_names
@@ -914,7 +918,7 @@ def _to_html(
         f'        <div class="kpi"><div class="name">equity range</div><div class="val">{eq_stats["low"]:.4f} ~ {eq_stats["high"]:.4f}</div></div>',
         "      </div>",
         "      <p class='note'>Large dataset tip: use filters/sort first, then export filtered or visible rows.</p>",
-        "      <p class='hotkeys small'>Shortcuts: J/K or [] or ��/�� (page prev/next), ��/�� (row nav), Shift+Enter (copy first row on current page), Shift+Alt+Enter (copy last row on current page), Ctrl/Cmd+Shift+Enter (also copy first row), Home/End (jump first/last row), C/Enter (copy selected), F/T (focus symbol filters), R (reset active), 0 (clear filters)</p>",
+        "      <p class='hotkeys small'>Shortcuts: J/K or [] or ��/�� (page prev/next), ��/�� (row nav), Shift+Enter (copy first row on current page), Shift+Alt+Enter (copy last row on current page), Ctrl/Cmd+Shift+Enter (also copy first row), Home/End (jump first/last row), M (toggle compact), C/Enter (copy selected), F/T (focus symbol filters), R (reset active), 0 (clear filters)</p>",
         "    </section>",
         "    <section class='panel'>",
         "      <h3>2) Report summary</h3>",
@@ -1838,20 +1842,20 @@ def _to_html(
         "    bind();",
         "    renderEvents();",
         "    renderTrades();",
-        "    try {",
-        "      const saved = localStorage.getItem('rrkal-photo-style');",
-        "      if (saved === '0') { setPhotoLayout(false); }",
-        "      else if (saved === '1') { setPhotoLayout(true); }",
-        "      else { setPhotoLayout(document.body.classList.contains('photo')); }",
-        "      const compactSaved = localStorage.getItem('rrkal-compact');",
-        "      if (compactSaved === '1') { setCompactLayout(true); }",
-        "      else { setCompactLayout(false); }",
-        "      setPhotoLayout(document.body.classList.contains('photo'));",
-        "    } catch (e) {",
-        "      setPhotoLayout(document.body.classList.contains('photo'));",
-        "      setCompactLayout(false);",
-        "      setPhotoLayout(document.body.classList.contains('photo'));",
-        "    }",
+    "    try {",
+    "      const saved = localStorage.getItem('rrkal-photo-style');",
+    "      if (saved === '0') { setPhotoLayout(false); }",
+    "      else if (saved === '1') { setPhotoLayout(true); }",
+    "      else { setPhotoLayout(document.body.classList.contains('photo')); }",
+    "      const compactSaved = localStorage.getItem('rrkal-compact');",
+    "      if (compactSaved === '1') { setCompactLayout(true); }",
+    "      else if (compactSaved === '0') { setCompactLayout(false); }",
+    "      else { setCompactLayout(document.body.classList.contains('compact')); }",
+    "      setPhotoLayout(document.body.classList.contains('photo'));",
+    "    } catch (e) {",
+    "      setPhotoLayout(document.body.classList.contains('photo'));",
+    "      setCompactLayout(false);",
+    "    }",
         "    updateGlobalBadge();",
         "  </script>",
         "</body>",
@@ -1950,6 +1954,7 @@ def _render_payload(
             event_max_rows=args.event_max_rows,
             html_row_cap=args.html_row_cap,
             photo_style=args.photo_style,
+            compact_layout=args.compact_layout,
         )
 
     if args.format in ("all", "html"):
@@ -2270,6 +2275,20 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         dest="photo_style",
         action="store_false",
         help="use compact plain layout",
+    )
+    compact_mode = parser.add_mutually_exclusive_group()
+    compact_mode.add_argument(
+        "--compact",
+        dest="compact_layout",
+        action="store_true",
+        default=False,
+        help="start with compact layout density enabled",
+    )
+    compact_mode.add_argument(
+        "--no-compact",
+        dest="compact_layout",
+        action="store_false",
+        help="start with normal layout density",
     )
     parser.add_argument("--equity-compress", choices=["auto", "rdp", "lttb", "uniform", "none"], default="auto", help="equity curve compression strategy")
     parser.add_argument("--equity-max-points", type=int, default=DEFAULT_EQUITY_MAX_POINTS, help="max points for html/svg equity rendering")
