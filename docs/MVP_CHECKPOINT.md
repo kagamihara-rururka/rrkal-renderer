@@ -25,3 +25,4 @@
 - [x] 事件/交易渲染以 HTML 欄位插值進行摘要拼接，並在切換 `photo/compact` 時套用 `card-mode`，作為 RRKAL 大數據 inspector 的預渲染對齊方向
 - [x] 修正 Photo/Compact 切換事件綁定時機，改為 `bind` 初始化時一次綁定，避免切版切換時重複綁定事件導致錯誤累積
 - [x] 強化 inspector 卡片式 row 視覺（photo mode 下 card-summary 行加入獨立圓角背景與間距），提升與 photo 版面一致性
+- [x] 為事件/交易卡片摘要加上 badge（symbol/time、PnL/qty）與 photo 色階，並移除重複文字行
