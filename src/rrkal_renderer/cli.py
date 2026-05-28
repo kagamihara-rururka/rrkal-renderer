@@ -591,6 +591,7 @@ def _summary_markdown(payload: Dict[str, Any], point_count: int, rendered_point_
 def _to_html(
     payload: Dict[str, Any],
     title: str,
+    show_download_bundle: bool,
     max_equity_points: int,
     equity_compress: str,
     rdp_epsilon: float,
@@ -755,7 +756,10 @@ def _to_html(
         "          <option value='trades'>Trades</option>",
         "        </select>",
         "        <button id='globalReset'>Clear Search</button>",
-        "        <button id='exportBundle'>Download Bundle</button>",
+    ]
+    if show_download_bundle:
+        html_lines.extend(["        <button id='exportBundle'>Download Bundle</button>"])
+    html_lines.extend([
         "        <span id='globalMatch' class='badge'>No global query</span>",
         "      </div>",
         "      <p class='note'>Shortcuts: / to focus search, Enter/C to copy selection, F/T to jump symbol input.</p>",
@@ -1624,10 +1628,12 @@ def _render_payload(
         rendered.append("report.md")
 
     html_content: str | None = None
+    should_bundle = args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
     if args.format in ("all", "html", "pdf"):
         html_content = _to_html(
             payload=payload,
             title=args.title,
+            show_download_bundle=should_bundle,
             max_equity_points=args.equity_max_points,
             equity_compress=args.equity_compress,
             rdp_epsilon=args.equity_rdp_epsilon,
@@ -1730,7 +1736,6 @@ def _render_payload(
         pdf_status=pdf_status,
     )
 
-    should_bundle = args.format in ("all", "md", "html", "json", "pdf") or args.emit_svg or args.export_csv or args.export_jsonl
     if should_bundle:
         rendered.append("render_bundle.zip")
         if _write_bundle(out_dir, rendered, bundle_name="render_bundle.zip"):
