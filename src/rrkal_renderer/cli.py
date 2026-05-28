@@ -89,6 +89,81 @@ def _write_pdf(path: Path, html_content: str, *, required: bool) -> str | None:
     return details
 
 
+def _inject_pdf_metadata(html_content: str, *, title: str | None, note: str | None) -> str:
+    safe_title = html.escape((title or "").strip())
+    safe_note = html.escape((note or "").strip())
+    if not safe_title and not safe_note:
+        return html_content
+
+    parts = [line for line in html_content.split("</head>", 1)]
+    if len(parts) != 2:
+        return html_content
+
+    meta_parts = ["    <meta name='x-rrkal-render-pdf' content='true'>"]
+    if safe_title:
+        meta_parts.append(f"    <meta name='x-rrkal-pdf-title' content='{safe_title}'>")
+    if safe_note:
+        meta_parts.append(f"    <meta name='x-rrkal-pdf-note' content='{safe_note}'>")
+    return f"{parts[0]}{''.join(meta_parts)}\n</head>{parts[1]}"
+
+
+def _write_render_summary(
+    out_dir: Path,
+    artifact_name: str,
+    run_id: str,
+    payload: Dict[str, Any],
+    args: argparse.Namespace,
+    *,
+    rendered: List[str],
+    pdf_status: Dict[str, Any],
+) -> None:
+    summary = {
+        "artifact_name": artifact_name,
+        "run_id": run_id,
+        "schema_version": payload.get("schema_version"),
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "requested_format": args.format,
+        "outputs": {
+            "rendered_files": rendered,
+            "pdf": pdf_status,
+        },
+        "render_settings": {
+            "title": args.title,
+            "trade_max_rows": args.trade_max_rows,
+            "event_max_rows": args.event_max_rows,
+            "equity_max_points": args.equity_max_points,
+            "equity_compress": args.equity_compress,
+            "equity_rdp_epsilon": args.equity_rdp_epsilon,
+            "photo_style": args.photo_style,
+        },
+    }
+    _write_text(out_dir / "render_summary.json", json.dumps(summary, ensure_ascii=False, indent=2))
+
+    output_links = "".join([f"<li>{html.escape(item)}</li>" for item in rendered])
+    pdf_result = "success" if pdf_status.get("success") else "failed"
+    html_lines = [
+        "<!doctype html>",
+        "<html><head><meta charset='utf-8'><title>Render Summary</title><style>",
+        "body{font-family:system-ui,Segoe UI,sans-serif;padding:1rem;background:#090909;color:#e5e7eb}",
+        "a{color:#38bdf8}ul{line-height:1.8}",
+        "</style></head><body>",
+        "<h1>RRKAL RenderKit Summary</h1>",
+        f"<p>artifact: <strong>{html.escape(artifact_name)}</strong></p>",
+        f"<p>run_id: <code>{html.escape(run_id)}</code></p>",
+        f"<p>requested format: <code>{html.escape(args.format)}</code></p>",
+        f"<p>schema_version: <code>{html.escape(str(payload.get('schema_version')))}</code></p>",
+        f"<p>pdf export: <strong>{pdf_result}</strong></p>",
+        "<h2>Rendered files</h2>",
+        "<ul>",
+        output_links,
+        "</ul>",
+        "<h3>Notes</h3>",
+        f"<pre>{html.escape(json.dumps(pdf_status, ensure_ascii=False, indent=2))}</pre>",
+        "</body></html>",
+    ]
+    _write_text(out_dir / "render_summary.html", "\n".join(html_lines))
+
+
 def _as_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -1510,9 +1585,12 @@ def _render_payload(
         method=args.equity_compress,
         rdp_epsilon=args.equity_rdp_epsilon,
     )
+    rendered: List[str] = []
+    pdf_status: Dict[str, Any] = {"requested": args.format in ("all", "pdf"), "success": False, "error": None, "path": "report.pdf"}
 
     if args.format in ("all", "md"):
         _write_text(out_dir / "report.md", _summary_markdown(payload, len(equity_points), len(sampled_equity)))
+        rendered.append("report.md")
 
     html_content: str | None = None
     if args.format in ("all", "html", "pdf"):
@@ -1532,33 +1610,52 @@ def _render_payload(
             out_dir / "report.html",
             html_content or "",
         )
+        rendered.append("report.html")
 
     if args.format in ("all", "pdf"):
         if not html_content:
             raise RuntimeError("Unable to generate HTML content for PDF export")
-        pdf_error = _write_pdf(out_dir / "report.pdf", html_content, required=(args.format == "pdf"))
+        pdf_html = _inject_pdf_metadata(
+            html_content,
+            title=args.pdf_title if args.pdf_title else args.title,
+            note=args.pdf_meta,
+        )
+        pdf_error = _write_pdf(out_dir / "report.pdf", pdf_html, required=(args.format == "pdf"))
         if pdf_error:
             if args.format == "all":
                 _write_text(out_dir / "pdf_export_error.txt", pdf_error)
+                rendered.append("pdf_export_error.txt")
+                pdf_status.update(success=False, error=pdf_error)
             else:
                 raise RuntimeError(pdf_error)
+        else:
+            rendered.append("report.pdf")
+            pdf_status.update(success=True, error=None)
+    else:
+        pdf_status["requested"] = False
+        pdf_status["success"] = True
 
     if args.emit_svg or args.format in ("all", "svg"):
         _write_svg(out_dir / "equity_curve.svg", sampled_equity)
+        rendered.append("equity_curve.svg")
 
     if args.export_csv:
         _emit_csv(out_dir / "trades.csv", trades if args.trade_max_rows <= 0 else trades[: args.trade_max_rows])
+        rendered.append("trades.csv")
         _emit_csv(
             out_dir / "equity_curve.csv",
             [dict(timestamp=entry[2], timestamp_index=entry[0], equity=entry[1]) for entry in equity_points],
         )
+        rendered.append("equity_curve.csv")
         _emit_csv(
             out_dir / "events.csv",
             events if args.event_max_rows <= 0 else events[: args.event_max_rows],
         )
+        rendered.append("events.csv")
 
     if args.export_jsonl:
         _emit_jsonl(out_dir / "events.jsonl", events)
+        rendered.append("events.jsonl")
 
     if args.format in ("all", "json"):
         _write_text(
@@ -1587,6 +1684,19 @@ def _render_payload(
                 sort_keys=True,
             ),
         )
+        rendered.append("preflight.json")
+
+    rendered.append("render_summary.json")
+    rendered.append("render_summary.html")
+    _write_render_summary(
+        out_dir,
+        artifact_name,
+        run_id,
+        payload,
+        args,
+        rendered=rendered,
+        pdf_status=pdf_status,
+    )
     return out_dir
 
 
@@ -1663,6 +1773,8 @@ def _add_render_options(parser: argparse.ArgumentParser) -> None:
         help="output artifacts",
     )
     parser.add_argument("--title", default="RRKAL Render Report", help="html page title")
+    parser.add_argument("--pdf-title", help="custom title used for report.pdf metadata")
+    parser.add_argument("--pdf-meta", help="custom metadata note written into report.pdf metadata")
     parser.add_argument(
         "--photo-style",
         dest="photo_style",

@@ -7,6 +7,7 @@ RRKAL RenderKit 是一個獨立的預渲染工具，目標是讀取 RRKAL artifa
 - SVG 股權曲線（`equity_curve.svg`）
 - PDF 報表（`report.pdf`）
 - CSV/JSONL 導出（`trades.csv`、`equity_curve.csv`、`events.csv`、`events.jsonl`）
+- 渲染摘要（`render_summary.html/json`）
 
 這個版本特別做了兩件事：
 
@@ -45,6 +46,9 @@ python -m rrkal_renderer.cli render path/to/run.json
 # 只輸出 PDF 報表（需要安裝 PDF 轉換後端）
 python -m rrkal_renderer.cli render path/to/run.json --format pdf
 
+# 指定 PDF 頁面標題與備註 metadata
+python -m rrkal_renderer.cli render path/to/run.json --format pdf --pdf-title "My Report" --pdf-meta "RRKAL v2"
+
 # 輸出全部時若缺少 PDF 轉換套件，會保留 `pdf_export_error.txt` 而不中斷其他輸出
 python -m rrkal_renderer.cli render path/to/run.json --format all
 
@@ -78,6 +82,8 @@ python -m rrkal_renderer.cli render-batch path/to/result_dir --pattern "*.jsonl"
 - `--emit-svg`
 - `--export-csv`
 - `--export-jsonl`
+- `--pdf-title`：PDF metadata title
+- `--pdf-meta`：PDF metadata note
 - `--photo-style` / `--no-photo-style`
 
 ## 注意事項
